@@ -30,6 +30,7 @@ typedef struct cell_el{
 }cell;
 int n;
 block** map;
+char map_name[200];
 /////////////////////////////////////////////////////////////////////////////////////////cell_control
 void clears(void){
 	system("CLS");
@@ -39,7 +40,7 @@ char * create_rand_name(void){
 	//i set the names to be 3 characters
 	char *str=(char *)malloc(4*sizeof(char));
 	const char charset[]=
-	"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	"abcdefghijklmnopqrstuvwxyz";
 	for (i=0;i<4;i++){
 		int temp=rand()%(sizeof(charset)/sizeof(char)-1);
 		str[i]=charset[temp];
@@ -412,6 +413,7 @@ int cell_action(cell* cell_el,cell* cell_list){
 			boost_energy(cell_el);
 			return 1;
 		case 4:
+			return 4;
 		case 5:
 			return 0;
 			
@@ -429,11 +431,13 @@ void single_player_handler (block** map){
 	printf("please enter the starting energy of each cell : ");
 	scanf("%d",&energy);
 	cell* player_cell=create_list(cell_num,map,'X',energy);
-	//print_visual_map(map);
-	//print_list(player_cell);
-	while(cell_action(choose_cell(player_cell),player_cell));
+	int return_val=1;
+	while(return_val){
+		return_val=cell_action(choose_cell(player_cell),player_cell);
+		if(return_val==4)save_single_state(player_cell);
+		
+	}
 	menu(map);
-	//cell_action(choose_cell(player_cell));
 }
 void multi_player_handler (block**map){
 	bool turn_x=true;
@@ -452,14 +456,26 @@ void multi_player_handler (block**map){
 	print_list(player1_cell);
 	print_list(player2_cell);
 	printf("\n");
+	int return_val;
 	while(1){
 		if(turn_x){
-			if(cell_action(choose_cell(player1_cell),player1_cell))
+			return_val=cell_action(choose_cell(player1_cell),player1_cell);
+			if(return_val){
+				if(return_val==4){
+					save_multi_state(player1_cell,player2_cell,1);
+				}
 				turn_x=false;
-				else break;
+			}
+			else break;
 		}else{
-		if(	cell_action(choose_cell(player2_cell),player2_cell))
-			turn_x=true;
+			return_val=cell_action(choose_cell(player2_cell),player2_cell);
+		if(return_val){
+			if(return_val==4){
+				save_multi_state(player1_cell,player2_cell,2);
+			}
+				turn_x=true;
+			
+			}
 			else break;
 		}
 	}
@@ -472,7 +488,9 @@ void multi_player_handler (block**map){
 block** create_map(void){
 	int i,j;
     FILE* fp=NULL;
-    fp=fopen("map6.bin","rb");
+    scanf("%s",map_name);
+    getchar();
+    fp=fopen(map_name,"rb");
     if(fp==NULL){
         printf("can not open file .\n");
         return NULL;
@@ -629,10 +647,91 @@ void menu (block** map){
 	}
 	//print_visual_map(map);
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////save & load functions
+int find_list_size(cell* list){
+	cell* current=list;
+	int counter=1;
+	while(current!=NULL){
+		current=current->next;
+	}
+	return counter;
+}
+void save_single_state(cell* cell_list){
+	cell* current=cell_list;
+	int i,j;
+	FILE* fp=NULL;
+	printf("Please enter name of the saved file (*.bin): ");
+	char out_name[200];
+	scanf("%s",out_name);
+	fp=fopen(out_name,"wb");
+	if(fp==NULL){
+		printf("Can not save the file.\n");
+		return ;
+	}
+	//first we write the n of the map and then we save the blocks of the map
+	fwrite(&n,sizeof(int),1,fp);
+	for(i=0;i<n;i++){
+		fwrite(map[i],sizeof(block),n,fp);
+	}
+	//2) we right the size of our list
+	int list_size=find_list_size(cell_list);
+	fwrite(&list_size,sizeof(int),1,fp);
+	//3)we save the list
+	while(current!=NULL){
+		fwrite(current,sizeof(cell),1,fp);
+		current=current->next;
+	}
+	printf("game has been saved.\n");
+	fclose(fp);
+}
+void save_multi_state(cell* player1_list,cell* player2_list,int player_turn){
+	cell* current1=player1_list;
+	cell* current2=player2_list;
+	int list1_size=find_list_size(player1_list);
+	int list2_size=find_list_size(player2_list);
+	int i=0;
+	FILE* fp=NULL;
+	printf("Please enter name of the saved file (*.bin): ");
+	char out_name[200];
+	scanf("%s",out_name);
+	fp=fopen(out_name,"wb");
+	if(fp==NULL){
+		printf("Can not save the file.\n");
+		return ;
+	}
+	//1)saving the n of the map and then saving the blocks of the map
+	fwrite(&n,sizeof(int),1,fp);
+	for(i=0;i<n;i++){
+		fwrite(map[i],sizeof(block),n,fp);
+	}
+	//2)saving cell list of player one and the list
+	fwrite(&list1_size,sizeof(int),1,fp);
+	while(current1!=NULL){
+		fwrite(current1,sizeof(cell),1,fp);
+		current1=current1->next;
+	}
+	//3)saving the second list
+	fwrite(&list2_size,sizeof(int),1,fp);
+	while(current2!=NULL){
+		fwrite(current2,sizeof(cell),1,fp);
+		current2=current2->next;
+	}
+	//4)saving player turn 
+	fwrite(&player_turn,sizeof(int),1,fp);
+	printf("game has been saved.\n");
+	fclose(fp);
+}
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////// main function
 int main(void){
 	//reads the file;
 	block** map=create_map();
 	srand(time(NULL));
-	menu(map);
+	if(map!=NULL)
+		menu(map);
 	return 0;
 }
