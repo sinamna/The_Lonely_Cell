@@ -31,6 +31,9 @@ typedef struct cell_el{
 int n;
 block** map;
 /////////////////////////////////////////////////////////////////////////////////////////cell_control
+void clears(void){
+	system("CLS");
+}
 char * create_rand_name(void){
 	int i;
 	//i set the names to be 3 characters
@@ -123,10 +126,9 @@ cell* create_list(int n_cell,block** map,char c,int energy){
 	return player_list;
 }
 
-void clears(void){
-	system("CLS");
-}
+
 cell* choose_cell(cell* player_list){
+	print_visual_map(map);
 	cell* current=player_list;
 	print_list(player_list);
 	printf("please choose one of your cells: \n");
@@ -319,20 +321,36 @@ void move_cell(block**map,cell* cell){
 					break;
 				}
 				break;
-	}
-	print_visual_map(map);
-	if(border_err==true){
-		printf("You can not get out of the map.\n");
-		border_err=false;
-	}
-	if(block_err==true){
-		printf("The block is full or forbidden . You cant go there.\n");
-		block_err=false;
-	}
+		}
+		//print_visual_map(map);
+		if(border_err==true){
+			printf("You can not get out of the map.\n");
+			border_err=false;
+		}
+		if(block_err==true){
+			printf("The block is full or forbidden . You cant go there.\n");
+			block_err=false;
+		}
+	}	//print_list();
 }
+void boost_energy(cell* cell_el){
+	int x=cell_el->x;
+	int y=cell_el->y;
+	if(map[y][x].type=='1'){
+		if(map[y][x].energy>=15){
+			cell_el->energy+=15;
+			map[y][x].energy-=15;
+		}else{
+			cell_el->energy+=map[y][x].energy;
+			map[y][x].energy=0;
+			map[y][x].type='4';
+		}
+	}else{
+		printf("You cant boost your energy here .");	
+	}
 }
 //why the .... struct cell*?
-void cell_action(cell* cell_el){
+int cell_action(cell* cell){
 	printf("[1] Move\n[2] Split a cell\n[3] Boost energy\n");
 	printf("[4] Save \n[5] Back\n Your choice? : ");
 	int input;
@@ -340,12 +358,18 @@ void cell_action(cell* cell_el){
 	switch(input){
 		case 1:
 			//i start considering  block** map as global pointer
-			move_cell(map,cell_el);
+			move_cell(map,cell);
+			return 1;
+		case 2: 
+		case 3:
+			boost_energy(cell);
+			return 1;
+		case 4:
+		case 5:
+			return 0;
 			
 	}
 }
-
-
 void single_player_handler (block** map){
 	//clear screen here
 	//clears();
@@ -358,13 +382,14 @@ void single_player_handler (block** map){
 	printf("please enter the starting energy of each cell : ");
 	scanf("%d",&energy);
 	cell* player_cell=create_list(cell_num,map,'X',energy);
-	print_visual_map(map);
+	//print_visual_map(map);
 	//print_list(player_cell);
-	cell_action(choose_cell(player_cell));
+	while(cell_action(choose_cell(player_cell)));
+	menu(map);
+	//cell_action(choose_cell(player_cell));
 }
 void multi_player_handler (block**map){
-	//clear screen here
-	clears();
+	bool turn_x=true;
 	textcolor(11);
 	printf("MULTI PLAYER MODE\n");
 	textcolor(15);
@@ -375,26 +400,25 @@ void multi_player_handler (block**map){
 	scanf("%d",&cell_num_p2);
 	printf("please enter the starting energy of each cell : ");
 	scanf("%d",&energy);
-    cell* player1_list=create_list(cell_num_p1,map,'X',energy);
-	cell* player2_list=create_list(cell_num_p2,map,'O',energy);
-	print_visual_map(map);
-	print_list(player1_list);
-	print_list(player2_list);
+    cell* player1_cell=create_list(cell_num_p1,map,'X',energy);
+	cell* player2_cell=create_list(cell_num_p2,map,'O',energy);
+	print_list(player1_cell);
+	print_list(player2_cell);
+	printf("\n");
+	while(1){
+		if(turn_x){
+			if(cell_action(choose_cell(player1_cell)))
+				turn_x=false;
+				else break;
+		}else{
+			cell_action(choose_cell(player2_cell));
+			turn_x=true;
+		}
+	}
+	menu(map);
 	
 	
 }
-/*void search_move_cell(cell*cell_list,char* name,int add_x,int add_y){
-	cell*current =cell_list;
-	//we should consider null cause when program reach to this level it MUST have a list of cells
-	while(current!=NULL){
-		if(!strcmp(current->name,name))break;
-		current=current->next;
-	}
-	current->x+=add_x;
-	current->y+=add_y;
-}*/
-// this one goes throw the list and returns the pointer for cell_action function
-
 //////////////////////////////////////////////////////////////////////////////////map_control
 // create_map funcion opens the map file and takes the input parameters
 block** create_map(void){
@@ -406,7 +430,7 @@ block** create_map(void){
         return NULL;
     }
     fread(&n,sizeof(int),1,fp);
-   // block**
+   // creating two dimensional array 
 	 map=(block** )calloc(n,sizeof(block *));
     for(i=0;i<n;i++){
         *(map+i)=(block*)calloc(n,sizeof(block));
@@ -446,9 +470,7 @@ char** visual_map_creator(block** map){
 		for(j=0;j<5*n;j++){
 			visual_map[i][j]='0';
 		}
-	}
-			
-	
+	}			
 	int counter=0;
 	int ip=n-1,jp=0;
 	for(i=2;i<5*n+2;i+=5){
@@ -536,7 +558,7 @@ void print_map(block** map){
     }
     //printf("fuck");
 }
-int menu (block** map){
+void menu (block** map){
 	printf("[1] Load\n");
 	printf("[2] New single player game\n");
 	printf("[3] New Multiplayer game\n");
