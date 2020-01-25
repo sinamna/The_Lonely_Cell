@@ -229,8 +229,96 @@ void move_cell(block**map,cell* cell){
 					}
 				
 				}
+			case 4:
+				//northwest
+				if(x>0 &&y<n-1){
+					if(x%2==0){
+						if(map[y+1][x-1].full==0){
+							cell->x-=1;
+							cell->y+=1;
+							map[y][x].full=0;
+							map[y+1][x-1].full=fullness;
+							has_moved=true;
+						}else{
+							block_err=true;
+							break;
+						}
+					}else{
+						if(map[y][x-1].full==0){
+							cell->x-=1;
+							map[y][x].full=0;
+							map[y][x-1].full=fullness;
+							has_moved=true;
+						}else{
+							block_err=true;
+							break;
+						}
+					}
+				}else{
+					border_err=true;
+					break;
+				}break;
+			
+			case 5:
+				//southeast
+				if(x<n-1 &&y>0){
+					if(x%2==0){
+						if(map[y][x+1].full==0){
+							cell->x+=1;
+							map[y][x].full=0;
+							map[y][x+1].full=fullness;
+							has_moved=true;
+						}else{
+							block_err=true;
+							break;
+						}
+					}else{
+						if(map[y-1][x+1].full==0){
+							cell->y-=1;
+							cell->x+=1;
+							map[y][x].full=0;
+							map[y-1][x+1].full=fullness;
+							has_moved=true;
+						}else{
+							block_err=true;
+							break;
+						}
+					}
+				}else{
+					border_err=true;
+					break;
+				}break;
 				
-			//case 4
+				
+			case 6:
+				//southwest
+				if(x>0 &&y>0){
+					if(x%2==0){
+						if(map[y][x-1].full==0){
+							cell->x-=1;
+							map[y][x].full=0;
+							map[y][x-1].full=fullness;
+							has_moved=true;
+						}else{
+							block_err=true;
+							break;
+						}
+					}else{
+						if(map[y-1][x-1].full==0){
+							cell->x-=1;
+							cell->y-=1;
+							map[y][x].full=0;
+							map[y-1][x-1].full=fullness;
+							has_moved=true;
+						}
+						block_err=true;
+						break;
+					}
+				}else{
+					border_err=true;
+					break;
+				}
+				break;
 	}
 	print_visual_map(map);
 	if(border_err==true){
