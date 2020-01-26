@@ -30,7 +30,8 @@ typedef struct cell_el{
 }cell;
 int n;
 block** map;
-char map_name[200];
+int is_loaded=0;
+bool turn_x=true;
 /////////////////////////////////////////////////////////////////////////////////////////cell_control
 void clears(void){
 	system("CLS");
@@ -419,18 +420,20 @@ int cell_action(cell* cell_el,cell* cell_list){
 			
 	}
 }
-void single_player_handler (block** map){
+void single_player_handler (block** map,cell* player_cell){
 	//clear screen here
 	//clears();
 	textcolor(11);
 	printf("SINGLE PLAYER MODE\n");
 	textcolor(15);
-	int cell_num,energy;
-	printf("please enter the number of cell(s): ");
-	scanf("%d",&cell_num);
-	printf("please enter the starting energy of each cell : ");
-	scanf("%d",&energy);
-	cell* player_cell=create_list(cell_num,map,'X',energy);
+	if(!is_loaded){
+		int cell_num,energy;
+		printf("please enter the number of cell(s): ");
+		scanf("%d",&cell_num);
+		printf("please enter the starting energy of each cell : ");
+		scanf("%d",&energy);
+		player_cell=create_list(cell_num,map,'X',energy);
+	}
 	int return_val=1;
 	while(return_val){
 		return_val=cell_action(choose_cell(player_cell),player_cell);
@@ -439,42 +442,44 @@ void single_player_handler (block** map){
 	}
 	menu(map);
 }
-void multi_player_handler (block**map){
-	bool turn_x=true;
+void multi_player_handler (block**map,cell* player1_cells,cell* player2_cells){
 	textcolor(11);
 	printf("MULTI PLAYER MODE\n");
 	textcolor(15);
-	int cell_num_p1,cell_num_p2,energy;
-	printf("please enter the number of cell(s) for player 1 : ");
-	scanf("%d",&cell_num_p1);
-	printf("please enter the number of cell(s) for player 2 : ");
-	scanf("%d",&cell_num_p2);
-	printf("please enter the starting energy of each cell : ");
-	scanf("%d",&energy);
-    cell* player1_cell=create_list(cell_num_p1,map,'X',energy);
-	cell* player2_cell=create_list(cell_num_p2,map,'O',energy);
-	print_list(player1_cell);
-	print_list(player2_cell);
+	if(!is_loaded){
+		int cell_num_p1,cell_num_p2,energy;
+		printf("please enter the number of cell(s) for player 1 : ");
+		scanf("%d",&cell_num_p1);
+		printf("please enter the number of cell(s) for player 2 : ");
+		scanf("%d",&cell_num_p2);
+		printf("please enter the starting energy of each cell : ");
+		scanf("%d",&energy);
+		//if(player1_cells==NULL)
+	    player1_cells=create_list(cell_num_p1,map,'X',energy);
+	    //if(player2_cells==NULL)
+		player2_cells=create_list(cell_num_p2,map,'O',energy);
+	}
+	print_list(player1_cells);
+	print_list(player2_cells);
 	printf("\n");
 	int return_val;
 	while(1){
 		if(turn_x){
-			return_val=cell_action(choose_cell(player1_cell),player1_cell);
+			return_val=cell_action(choose_cell(player1_cells),player1_cells);
 			if(return_val){
 				if(return_val==4){
-					save_multi_state(player1_cell,player2_cell,1);
+					save_multi_state(player1_cells,player2_cells,1);
 				}
 				turn_x=false;
 			}
 			else break;
 		}else{
-			return_val=cell_action(choose_cell(player2_cell),player2_cell);
+			return_val=cell_action(choose_cell(player2_cells),player2_cells);
 		if(return_val){
 			if(return_val==4){
-				save_multi_state(player1_cell,player2_cell,2);
+				save_multi_state(player1_cells,player2_cells,2);
 			}
 				turn_x=true;
-			
 			}
 			else break;
 		}
@@ -487,35 +492,39 @@ void multi_player_handler (block**map){
 // create_map funcion opens the map file and takes the input parameters
 block** create_map(void){
 	int i,j;
-    FILE* fp=NULL;
-    scanf("%s",map_name);
-    getchar();
-    fp=fopen(map_name,"rb");
-    if(fp==NULL){
-        printf("can not open file .\n");
-        return NULL;
-    }
-    fread(&n,sizeof(int),1,fp);
-   // creating two dimensional array 
-	 map=(block** )calloc(n,sizeof(block *));
-    for(i=0;i<n;i++){
-        *(map+i)=(block*)calloc(n,sizeof(block));
-    }
-    // I SHOULD HANDLE PLAYERS PRESENTS IN THE ACTUALL NON_VISUAL MAP
-    //I HANDLE IT WITH THE STRUCT MEMBER ((FULL))
-    for(i=0;i<n;i++){
-        for(j=0;j<n;j++){
-            fread(&map[i][j].type,sizeof(char),1,fp);
-            if(map[i][j].type=='1'){
-                map[i][j].energy=100;
-            }else map[i][j].energy=0;
-            //this part handles the forbidden block parts
-            if(map[i][j].type=='3')map[i][j].full=3;
-            else map[i][j].full=0;
-        }
-    }
-    fclose(fp);
+	if(!is_loaded){
+		FILE* fp=NULL;
+		//char map_name[200];
+		//printf("Please enter the name of the map: \n");
+		//scanf("%s",map_name);
+    //	getchar();
+    	fp=fopen("map6.bin","rb");
+    	if(fp==NULL){
+        	printf("can not open file .\n");
+    	    return NULL;
+    	}
+   		fread(&n,sizeof(int),1,fp);
     
+	    // creating two dimensional array 
+		map=(block** )calloc(n,sizeof(block *));
+   	    for(i=0;i<n;i++){
+   	    	*(map+i)=(block*)calloc(n,sizeof(block));
+   	 	}
+   	 	// I SHOULD HANDLE PLAYERS PRESENTS IN THE ACTUALL NON_VISUAL MAP
+   	 	//I HANDLE IT WITH THE STRUCT MEMBER ((FULL))
+   	 	for(i=0;i<n;i++){
+   	    	 for(j=0;j<n;j++){
+   	        	 fread(&map[i][j].type,sizeof(char),1,fp);
+   	        	 if(map[i][j].type=='1'){
+   	             map[i][j].energy=100;
+   	         }else map[i][j].energy=0;
+   	         //this part handles the forbidden block parts
+   	         if(map[i][j].type=='3')map[i][j].full=3;
+   	         else map[i][j].full=0;
+   	   		  }
+ 	   	}
+    	fclose(fp);
+	}
     return map;
 }
 char** visual_map_creator(block** map){
@@ -624,7 +633,7 @@ void print_map(block** map){
     }
     //printf("fuck");
 }
-void menu (block** map){
+void menu (block** map,cell* list1,cell* list2){
 	printf("[1] Load\n");
 	printf("[2] New single player game\n");
 	printf("[3] New Multiplayer game\n");
@@ -634,13 +643,13 @@ void menu (block** map){
 	scanf("%d",&input);
 	switch(input){
 		case 1:
-			//map_loader();
+			load_main(list1,list2);
 			break;
 		case 2:
-			single_player_handler(map);
+			single_player_handler(map,list1);
 			break;
 		case 3:
-			multi_player_handler (map);
+			multi_player_handler (map,list1,list2);
 			break;
 		case 4:
 			break;
@@ -648,9 +657,11 @@ void menu (block** map){
 	//print_visual_map(map);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////save & load functions
+//i see huge problem
 int find_list_size(cell* list){
 	cell* current=list;
-	int counter=1;
+	int counter=3
+	;
 	while(current!=NULL){
 		current=current->next;
 	}
@@ -658,7 +669,7 @@ int find_list_size(cell* list){
 }
 void save_single_state(cell* cell_list){
 	cell* current=cell_list;
-	int i,j;
+	int i,j,playernum=1;
 	FILE* fp=NULL;
 	printf("Please enter name of the saved file (*.bin): ");
 	char out_name[200];
@@ -669,6 +680,7 @@ void save_single_state(cell* cell_list){
 		return ;
 	}
 	//first we write the n of the map and then we save the blocks of the map
+	fwrite(&playernum,sizeof(int),1,fp);
 	fwrite(&n,sizeof(int),1,fp);
 	for(i=0;i<n;i++){
 		fwrite(map[i],sizeof(block),n,fp);
@@ -689,7 +701,7 @@ void save_multi_state(cell* player1_list,cell* player2_list,int player_turn){
 	cell* current2=player2_list;
 	int list1_size=find_list_size(player1_list);
 	int list2_size=find_list_size(player2_list);
-	int i=0;
+	int i=0,playernum=2;
 	FILE* fp=NULL;
 	printf("Please enter name of the saved file (*.bin): ");
 	char out_name[200];
@@ -700,6 +712,7 @@ void save_multi_state(cell* player1_list,cell* player2_list,int player_turn){
 		return ;
 	}
 	//1)saving the n of the map and then saving the blocks of the map
+	fwrite(&playernum,sizeof(int),1,fp);
 	fwrite(&n,sizeof(int),1,fp);
 	for(i=0;i<n;i++){
 		fwrite(map[i],sizeof(block),n,fp);
@@ -722,16 +735,85 @@ void save_multi_state(cell* player1_list,cell* player2_list,int player_turn){
 	fclose(fp);
 }
 
-
-
+void load_main(cell* list1,cell* list2){
+	int i,j;
+	char input_name[200];
+	printf("Enter the name of the loading file : ");
+	scanf("%s",input_name);
+	FILE* fp=fopen(input_name,"rb");
+	if(fp==NULL){
+		printf("File could not be loaded.\n");
+		return ;
+	}
+	int playernum;
+	fread(&playernum,sizeof(int),1,fp);
+	fread(&n,sizeof(int),1,fp);
+	//map=(block**)malloc(n*sizeof(block*));
+	for(i=0;i<n;i++){
+		fread(map[i],sizeof(block),n,fp);
+	}
+	
+	if(playernum==1)single_load(list1,fp);
+	else multi_load(list1,list2,fp);
+}
+void single_load (cell* list1,FILE* fp){
+	int size,i;
+	//i see probelm
+	fread(&size,sizeof(int),1,fp);
+	
+	//we use dummy header add_cell function needs an first cell to be able to add to end of it
+	cell* dummy_header=(cell*)malloc(sizeof(cell));
+	cell* current=(cell*)malloc(sizeof(cell));
+	printf("%d",size);
+	for(i=1;i<=size;i++){
+		printf("fuck.\n");
+		fread(current,sizeof(cell),1,fp);
+		current->next=NULL;
+		add_cell(dummy_header,current->x,current->y,current->name,current->player,current->energy);
+	}
+	//printf("fuck.\n");
+	list1=dummy_header->next;
+	is_loaded=1;
+	printf("loaded successfully. :) \n");
+	fclose(fp);
+	single_player_handler(map,list1);
+}
+void multi_load(cell* list1,cell* list2,FILE* fp){
+	int i,size1,size2,turn;
+	cell* current1=(cell*)malloc(sizeof(block));
+	cell* current2=(cell*)malloc(sizeof(block));
+	cell* dummy_head1=(cell*)malloc(sizeof(block));
+	cell* dummy_head2=(cell*)malloc(sizeof(block));
+	fread(&size1,sizeof(int),1,fp);
+	for(i=1;i<=size1;i++){
+		fread(current1,sizeof(cell),1,fp);
+		current1->next=NULL;
+		add_cell(dummy_head1,current1->x,current1->y,current1->name,current1->player,current1->energy);
+	}
+	fread(&size2,sizeof(int),1,fp);
+	for(i=1;i<=size2;i++){
+		fread(current2,sizeof(cell),1,fp);
+		current2->next=NULL;
+		add_cell(dummy_head2,current2->x,current2->y,current2->name,current2->player,current2->energy);
+	}
+	list1=dummy_head1->next;
+	list2=dummy_head2->next;
+	fread(&turn,sizeof(int),1,fp);
+	if(turn==1)turn_x=true;
+	else turn_x=false;
+	
+}
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////// main function
 int main(void){
 	//reads the file;
-	block** map=create_map();
+	cell* list1=NULL;
+	cell* list2=NULL;
+	//block**
+	map=create_map();
 	srand(time(NULL));
 	if(map!=NULL)
-		menu(map);
+		menu(map,list1,list2);
 	return 0;
 }
