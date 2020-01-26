@@ -35,12 +35,16 @@ void save_map(void){
 		return ;
 	}
 	fwrite(&n,sizeof(int),1,fp);
+
 	for(i=0;i<n;i++){
 		for(j=0;j<n;j++){
-			fwrite(map[i][j].type,sizeof(char),1,fp);
+			fwrite(&map[i][j].type,sizeof(char),1,fp);
 		}
 	}
+	fclose(fp);
+	
 	printf("map saved successfully. :) \n");
+	
 
 }
 int menu(){
@@ -183,6 +187,5 @@ int main (void){
 	create_map();
 	while(menu());
 	save_map();
-	return 0;
-	
+	return 1;
 }
