@@ -439,7 +439,7 @@ void single_player_handler (block** map,cell* player_cell){
 		return_val=cell_action(choose_cell(player_cell),player_cell);
 		if(return_val==4)save_single_state(player_cell);
 	}
-	menu(map);
+	menu(map,player_cell,NULL);
 }
 void multi_player_handler (block**map,cell* player1_cells,cell* player2_cells){
 	textcolor(11);
@@ -483,7 +483,7 @@ void multi_player_handler (block**map,cell* player1_cells,cell* player2_cells){
 			else break;
 		}
 	}
-	menu(map);
+	menu(map,player1_cells,player2_cells);
 	
 	
 }
@@ -836,7 +836,6 @@ int main(void){
 	//reads the file;
 	cell* list1=NULL;
 	cell* list2=NULL;
-	//block**
 	map=create_map();
 	srand(time(NULL));
 	if(map!=NULL)
