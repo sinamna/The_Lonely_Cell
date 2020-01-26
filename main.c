@@ -831,8 +831,6 @@ void multi_load(cell* list1,cell* list2,FILE* fp){
 	fclose(fp);
 	multi_player_handler(map,list1,list2);
 }
-
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////// main function
 int main(void){
 	//reads the file;
