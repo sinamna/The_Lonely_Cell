@@ -702,6 +702,7 @@ void save_single_state(cell* cell_list){
 	fclose(fp);
 }
 void save_multi_state(cell* player1_list,cell* player2_list,int player_turn){
+	char saved_name[4];
 	cell* current1=player1_list;
 	cell* current2=player2_list;
 	int list1_size=find_list_size(player1_list);
@@ -725,13 +726,21 @@ void save_multi_state(cell* player1_list,cell* player2_list,int player_turn){
 	//2)saving cell list of player one and the list
 	fwrite(&list1_size,sizeof(int),1,fp);
 	while(current1!=NULL){
+		for(i=0;i<4;i++){
+			saved_name[i]=current1->name[i];
+		}
 		fwrite(current1,sizeof(cell),1,fp);
+		fwrite(saved_name,sizeof(char),4,fp);
 		current1=current1->next;
 	}
 	//3)saving the second list
 	fwrite(&list2_size,sizeof(int),1,fp);
 	while(current2!=NULL){
+		for(i=0;i<4;i++){
+			saved_name[i]=current2->name[i];
+		}
 		fwrite(current2,sizeof(cell),1,fp);
+		fwrite(saved_name,sizeof(char),4,fp);
 		current2=current2->next;
 	}
 	//4)saving player turn 
@@ -763,20 +772,20 @@ void load_main(cell* list1,cell* list2){
 }
 void single_load (cell* list1,FILE* fp){
 	int size,i;
-	char* saved_name=NULL;
+	char* saved_name_space=NULL;
 	fread(&size,sizeof(int),1,fp);
 	//we use dummy header add_cell function needs an first cell to be able to add to end of it
 	cell* dummy_header=(cell*)malloc(sizeof(cell));
 	dummy_header->next=NULL;
 	cell* current=(cell*)malloc(sizeof(cell));
 	for(i=1;i<=size;i++){
-		saved_name=(char*)malloc(4*sizeof(char));
+		saved_name_space=(char*)malloc(4*sizeof(char));
 		//i cant allocate memory for current.name 
 		fread(current,sizeof(cell),1,fp);
-		fread(saved_name,sizeof(char),4,fp);
-		current->name=saved_name;
+		fread(saved_name_space,sizeof(char),4,fp);
 		current->next=NULL;
-		add_cell(dummy_header,current->x,current->y,current->name,current->player,current->energy);
+		//add_cell name part takes only pointer to string
+		add_cell(dummy_header,current->x,current->y,saved_name_space,current->player,current->energy);
 	}
 	//printf("fuck.\n");
 	list1=dummy_header->next;
@@ -793,24 +802,32 @@ void multi_load(cell* list1,cell* list2,FILE* fp){
 	cell* dummy_head2=(cell*)malloc(sizeof(cell));
 	dummy_head1->next=NULL;
 	dummy_head2->next=NULL;
+	char* saved_name_space=NULL;
 	fread(&size1,sizeof(int),1,fp);
 	for(i=1;i<=size1;i++){
+		saved_name_space=(char*)malloc(4*sizeof(char));
 		fread(current1,sizeof(cell),1,fp);
+		fread(saved_name_space,sizeof(char),4,fp);
 		current1->next=NULL;
-		add_cell(dummy_head1,current1->x,current1->y,current1->name,current1->player,current1->energy);
+		add_cell(dummy_head1,current1->x,current1->y,saved_name_space,current1->player,current1->energy);
 	}
 	fread(&size2,sizeof(int),1,fp);
 	for(i=1;i<=size2;i++){
+		saved_name_space=(char*)malloc(4*sizeof(char));
 		fread(current2,sizeof(cell),1,fp);
+		fread(saved_name_space,sizeof(char),4,fp);
 		current2->next=NULL;
-		add_cell(dummy_head2,current2->x,current2->y,current2->name,current2->player,current2->energy);
+		add_cell(dummy_head2,current2->x,current2->y,saved_name_space,current2->player,current2->energy);
 	}
 	list1=dummy_head1->next;
 	list2=dummy_head2->next;
 	fread(&turn,sizeof(int),1,fp);
 	if(turn==1)turn_x=true;
 	else turn_x=false;
-	
+	is_loaded=1;
+	printf("loaded successfully. :) \n");
+	fclose(fp);
+	multi_player_handler(map,list1,list2);
 }
 
 
