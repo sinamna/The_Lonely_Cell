@@ -23,7 +23,7 @@ typedef struct map_block{
 typedef struct cell_el{
 	int x;
 	int y;
-	char * name;
+	char* name;
 	char player;
 	int energy;
 	struct cell_el* next;
@@ -438,7 +438,6 @@ void single_player_handler (block** map,cell* player_cell){
 	while(return_val){
 		return_val=cell_action(choose_cell(player_cell),player_cell);
 		if(return_val==4)save_single_state(player_cell);
-		
 	}
 	menu(map);
 }
@@ -660,10 +659,10 @@ void menu (block** map,cell* list1,cell* list2){
 //i see huge problem
 int find_list_size(cell* list){
 	cell* current=list;
-	int counter=3
-	;
+	int counter=0;
 	while(current!=NULL){
 		current=current->next;
+		counter++;
 	}
 	return counter;
 }
@@ -673,6 +672,7 @@ void save_single_state(cell* cell_list){
 	FILE* fp=NULL;
 	printf("Please enter name of the saved file (*.bin): ");
 	char out_name[200];
+	char saved_name[4];
 	scanf("%s",out_name);
 	fp=fopen(out_name,"wb");
 	if(fp==NULL){
@@ -689,8 +689,13 @@ void save_single_state(cell* cell_list){
 	int list_size=find_list_size(cell_list);
 	fwrite(&list_size,sizeof(int),1,fp);
 	//3)we save the list
+	
 	while(current!=NULL){
+		for(i=0;i<4;i++){
+			saved_name[i]=current->name[i];
+		}
 		fwrite(current,sizeof(cell),1,fp);
+		fwrite(saved_name,sizeof(char),4,fp);
 		current=current->next;
 	}
 	printf("game has been saved.\n");
@@ -758,16 +763,18 @@ void load_main(cell* list1,cell* list2){
 }
 void single_load (cell* list1,FILE* fp){
 	int size,i;
-	//i see probelm
+	char* saved_name=NULL;
 	fread(&size,sizeof(int),1,fp);
-	
 	//we use dummy header add_cell function needs an first cell to be able to add to end of it
 	cell* dummy_header=(cell*)malloc(sizeof(cell));
+	dummy_header->next=NULL;
 	cell* current=(cell*)malloc(sizeof(cell));
-	printf("%d",size);
 	for(i=1;i<=size;i++){
-		printf("fuck.\n");
+		saved_name=(char*)malloc(4*sizeof(char));
+		//i cant allocate memory for current.name 
 		fread(current,sizeof(cell),1,fp);
+		fread(saved_name,sizeof(char),4,fp);
+		current->name=saved_name;
 		current->next=NULL;
 		add_cell(dummy_header,current->x,current->y,current->name,current->player,current->energy);
 	}
@@ -780,10 +787,12 @@ void single_load (cell* list1,FILE* fp){
 }
 void multi_load(cell* list1,cell* list2,FILE* fp){
 	int i,size1,size2,turn;
-	cell* current1=(cell*)malloc(sizeof(block));
-	cell* current2=(cell*)malloc(sizeof(block));
-	cell* dummy_head1=(cell*)malloc(sizeof(block));
-	cell* dummy_head2=(cell*)malloc(sizeof(block));
+	cell* current1=(cell*)malloc(sizeof(cell));
+	cell* current2=(cell*)malloc(sizeof(cell));
+	cell* dummy_head1=(cell*)malloc(sizeof(cell));
+	cell* dummy_head2=(cell*)malloc(sizeof(cell));
+	dummy_head1->next=NULL;
+	dummy_head2->next=NULL;
 	fread(&size1,sizeof(int),1,fp);
 	for(i=1;i<=size1;i++){
 		fread(current1,sizeof(cell),1,fp);
