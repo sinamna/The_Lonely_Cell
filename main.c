@@ -493,11 +493,12 @@ block** create_map(void){
 	int i,j;
 	if(!is_loaded){
 		FILE* fp=NULL;
-		//char map_name[200];
-		//printf("Please enter the name of the map: \n");
-		//scanf("%s",map_name);
-    //	getchar();
-    	fp=fopen("map6.bin","rb");
+		char map_name[200];
+		printf("Please enter the name of the map: \n");
+		scanf("%s",map_name);
+    	getchar();
+    	fp=fopen(map_name,"rb");
+    	printf("\n");
     	if(fp==NULL){
         	printf("can not open file .\n");
     	    return NULL;
@@ -567,6 +568,7 @@ char** visual_map_creator(block** map){
 				counter++;
 				jp++;
 		}
+		counter=0;
 		jp=0;
 		if(ip!=0)ip--;
 	}
