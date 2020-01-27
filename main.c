@@ -477,8 +477,9 @@ void show_scores(cell* player1,cell* player2){
 	cell* current1=player1;
 	int player1_score=0;
 	while(current1!=NULL){
+		//printf("fuck");
 		player1_score+=current1->energy;
-		current1->next;
+		current1=current1->next;
 	}
 	printf("Player X score : %d\n",player1_score);
 	if(player2!=NULL){
@@ -514,6 +515,7 @@ void single_player_handler (block** map,cell* player_cell){
 		return_val=cell_action(choose_cell(player_cell),player_cell);
 		if(return_val==4)save_single_state(player_cell);
 	}
+	
 	show_scores(player_cell,NULL);
 	//menu(map,player_cell,NULL);
 }
