@@ -472,6 +472,29 @@ int cell_action(cell* cell_el,cell* cell_list){
 			
 	}
 }
+//////////////////////////////////////////////////////////////////////////////Players handlers
+void show_scores(cell* player1,cell* player2){
+	cell* current1=player1;
+	int player1_score=0;
+	while(current1!=NULL){
+		player1_score+=current1->energy;
+		current1->next;
+	}
+	printf("Player X score : %d\n",player1_score);
+	if(player2!=NULL){
+		cell*current2=player2;
+		int player2_score=0;
+		while(current2!=NULL){
+			player2_score+=current2->energy;
+			current2=current2->next;
+		}
+		printf("Player O score : %d\n",player2_score);
+		if(player1_score>player2_score)printf("Player X won :)))))))))))))))))))\n");
+		else if(player1_score<player2_score)printf("Player O won :))))))))))))))))\n");
+		else printf("No one won :(\n");
+	}
+}	
+
 void single_player_handler (block** map,cell* player_cell){
 	//clear screen here
 	//clears();
@@ -491,6 +514,7 @@ void single_player_handler (block** map,cell* player_cell){
 		return_val=cell_action(choose_cell(player_cell),player_cell);
 		if(return_val==4)save_single_state(player_cell);
 	}
+	show_scores(player_cell,NULL);
 	//menu(map,player_cell,NULL);
 }
 void multi_player_handler (block**map,cell* player1_cells,cell* player2_cells){
@@ -535,10 +559,10 @@ void multi_player_handler (block**map,cell* player1_cells,cell* player2_cells){
 			else break;
 		}
 	}
+	show_scores(player1_cells,player2_cells);
 	//menu(map,player1_cells,player2_cells);
-	
-	
 }
+
 //////////////////////////////////////////////////////////////////////////////////map_control
 // create_map funcion opens the map file and takes the input parameters
 block** create_map(void){
@@ -707,24 +731,7 @@ void menu (block** map,cell* list1,cell* list2){
 	}
 	//print_visual_map(map);
 }
-void show_scores(cell* player1,cell* player2){
-	cell* current1=player1;
-	cell* current2=player2;
-	int player1_score=0;
-	int player2_score=0;
-	while(current1!=NULL){
-		player1_score+=current1->energy;
-		current1=current1->next;
-	}
-	while(current2!=NULL){
-		player2_score+=current2->energy;
-		current2=current2->next;
-	}
-	printf("Player X score : %d\n",player1_score);
-	printf("Player O score : %d\n",player2_score);
-	if(player1_score>player2_score)printf("Player X won :))))))))))))))))))\n");
-	else printf("Player O won :))))))))))))))))))\n");
-}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////save & load functions
 //i see huge problem
 int find_list_size(cell* list){
@@ -908,6 +915,5 @@ int main(void){
 	srand(time(NULL));
 	if(map!=NULL)
 		menu(map,list1,list2);
-		show_scores(list1,list2);
 	return 0;
 }
