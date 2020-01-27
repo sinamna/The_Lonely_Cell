@@ -227,12 +227,24 @@ void move_cell(block**map,cell* cell){
 							block_err=true;
 							break;
 						}
-					}else{
+					}else if(x<n-1 && (y==n-1)){
+						if(map[y][x+1].full==0){
+							cell->x+=1;
+							map[y][x].full=0;
+							map[y][x+1].full=fullness;
+							has_moved=true;
+						}else{
+							printf("fuck");
+							block_err=true;
+							break;
+						}
+					}
+					else{
 						border_err=true;
 							break;
 					}
-				
 				}
+				break;
 			case 4:
 				//northwest
 				if(x>0 &&y<n-1){
@@ -258,9 +270,22 @@ void move_cell(block**map,cell* cell){
 							break;
 						}
 					}
+				}else if(x>0 && (y==n-1)){
+					if(x%2==1){
+						if(map[y][x-1].full==0){
+							cell->x-=1;
+							map[y][x].full=0;
+							map[y][x-1].full=fullness;
+							has_moved=true;
+						}
+						else{
+							block_err=true;
+							break;
+						}
+					}
 				}else{
 					border_err=true;
-					break;
+					break;	
 				}break;
 			
 			case 5:
@@ -282,6 +307,18 @@ void move_cell(block**map,cell* cell){
 							cell->x+=1;
 							map[y][x].full=0;
 							map[y-1][x+1].full=fullness;
+							has_moved=true;
+						}else{
+							block_err=true;
+							break;
+						}
+					}
+				}else if ( x<n-1 && (y==0)){
+					if(x%2==0){
+						if(map[y][x+1].full==0){
+							cell->x+=1;
+							map[y][x].full=0;
+							map[y][x+1].full=fullness;
 							has_moved=true;
 						}else{
 							block_err=true;
@@ -314,11 +351,26 @@ void move_cell(block**map,cell* cell){
 							map[y][x].full=0;
 							map[y-1][x-1].full=fullness;
 							has_moved=true;
+						}else{
+							block_err=true;
+							break;
 						}
-						block_err=true;
-						break;
+
 					}
-				}else{
+				}else if(x>0 && (y==0)){
+					if(x%2==0){
+						if(map[y][x-1].full==0){
+							cell->x-=1;
+							map[y][x].full=0;
+							map[y][x-1].full=fullness;
+							has_moved=true;
+						}else{
+							block_err=true;
+							break;
+						}
+					}
+				}
+				else{
 					border_err=true;
 					break;
 				}
