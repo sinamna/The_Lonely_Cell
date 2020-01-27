@@ -399,7 +399,7 @@ void split_cell(cell* cell_el,cell* cell_list){
 //why the .... struct cell*?
 int cell_action(cell* cell_el,cell* cell_list){
 	printf("[1] Move\n[2] Split a cell\n[3] Boost energy\n");
-	printf("[4] Save \n[5] Back\n Your choice? : ");
+	printf("[4] Save \n[5] Exit\n Your choice? : ");
 	int input;
 	scanf("%d",&input);
 	switch(input){
@@ -439,7 +439,7 @@ void single_player_handler (block** map,cell* player_cell){
 		return_val=cell_action(choose_cell(player_cell),player_cell);
 		if(return_val==4)save_single_state(player_cell);
 	}
-	menu(map,player_cell,NULL);
+	//menu(map,player_cell,NULL);
 }
 void multi_player_handler (block**map,cell* player1_cells,cell* player2_cells){
 	textcolor(11);
@@ -483,7 +483,7 @@ void multi_player_handler (block**map,cell* player1_cells,cell* player2_cells){
 			else break;
 		}
 	}
-	menu(map,player1_cells,player2_cells);
+	//menu(map,player1_cells,player2_cells);
 	
 	
 }
@@ -575,8 +575,6 @@ char** visual_map_creator(block** map){
 	
 	return visual_map;
 }
-//THE MOST FUCKING HARD PART
-// U SHOULD FUCKING MOVE THE MAP
 void print_visual_map(block** map){
 	int i,j;
 	int counter=0;
@@ -656,6 +654,24 @@ void menu (block** map,cell* list1,cell* list2){
 			break;
 	}
 	//print_visual_map(map);
+}
+void show_scores(cell* player1,cell* player2){
+	cell* current1=player1;
+	cell* current2=player2;
+	int player1_score=0;
+	int player2_score=0;
+	while(current1!=NULL){
+		player1_score+=current1->energy;
+		current1=current1->next;
+	}
+	while(current2!=NULL){
+		player2_score+=current2->energy;
+		current2=current2->next;
+	}
+	printf("Player X score : %d\n",player1_score);
+	printf("Player O score : %d\n",player2_score);
+	if(player1_score>player2_score)printf("Player X won :))))))))))))))))))\n");
+	else printf("Player O won :))))))))))))))))))\n");
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////save & load functions
 //i see huge problem
@@ -840,5 +856,6 @@ int main(void){
 	srand(time(NULL));
 	if(map!=NULL)
 		menu(map,list1,list2);
+		show_scores(list1,list2);
 	return 0;
 }
